@@ -2,6 +2,8 @@
 
 A Google Apps Script web app for tracking Lucky Shiny Pokemon collection progress across multiple players. Built on Google Sheets as a backend, with a mobile-friendly dark-themed SPA frontend.
 
+For a working example, see my group's here: https://script.google.com/macros/s/AKfycby4djjgOAzU4tg_eBI86wGj3FPP-0CNkRf3nduTK_CSwpigM7jzUAx_AOn-O76HHRoOyQ/exec
+
 ## Overview
 
 This tool helps groups of Pokemon Go friends track which Lucky Shiny Pokemon each person has collected. It syncs the full Pokemon Go Pokedex from [pokemondb.net](https://pokemondb.net/go/pokedex), tracks completion status and priority for each player, generates in-game search strings for trading sessions, and provides visual overviews of collection progress.
