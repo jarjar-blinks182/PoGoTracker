@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+
+  .header {
+    background: #16213e;
+    padding: 16px;
+    border-bottom: 1px solid #333;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 18px;
+    color: #ffcb05;
+  }
+  .header-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .icon-btn {
+    background: transparent;
+    border: 1px solid #444;
+    color: #aaa;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-btn:active { background: #333; }
+
+  .player-bar {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .player-btn {
+    padding: 8px 20px;
+    border: 2px solid #444;
+    border-radius: 20px;
+    background: transparent;
+    color: #aaa;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .player-btn.active {
+    background: #3d5a80;
+    border-color: #5b9bd5;
+    color: #fff;
+  }
+
+  .content { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+  .section {
+    background: #16213e;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .section h2 {
+    font-size: 14px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    padding: 12px 0;
+  }
+  .stat-value { font-size: 22px; font-weight: 700; color: #5b9bd5; }
+  .stat-label { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .action-btn {
+    padding: 10px 20px;
+    background: #5b9bd5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .action-btn:active { background: #4a87be; }
+  .action-btn:disabled { opacity: 0.5; }
+
+  .search-string-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #2a2a4a;
+  }
+  .search-string-row:last-child { border-bottom: none; }
+  .ss-player {
+    font-weight: 600;
+    font-size: 14px;
+    color: #5b9bd5;
+    min-width: 70px;
+    flex-shrink: 0;
+  }
+  .ss-priority {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #888;
+  }
+  .ss-priority input { width: 16px; height: 16px; }
+  .ss-string {
+    flex: 1;
+    min-width: 0;
+    background: #0d1117;
+    color: #7ee787;
+    font-family: monospace;
+    font-size: 11px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .ss-string:active { border-color: #238636; }
+  .ss-copied {
+    font-size: 11px;
+    color: #238636;
+    font-weight: 600;
+    min-width: 50px;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .ss-copied.show { opacity: 1; }
+
+  .search-box { position: relative; }
+  .search-input {
+    width: 100%;
+    padding: 12px 14px;
+    background: #0d1117;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+  }
+  .search-input:focus { border-color: #5b9bd5; }
+  .search-input::placeholder { color: #555; }
+
+  .dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #0d1117;
+    border: 1px solid #333;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 50;
+    display: none;
+  }
+  .dropdown-item {
+    padding: 12px 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1a1a2e;
+    font-size: 14px;
+  }
+  .dropdown-item:hover, .dropdown-item:active { background: #16213e; }
+  .dropdown-item .num { color: #888; font-size: 12px; margin-right: 8px; }
+  .dropdown-item .name { flex: 1; }
+  .dropdown-item .status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .status-done { background: #238636; color: #fff; }
+  .status-need { background: #da3633; color: #fff; }
+  .status-priority { background: #d29922; color: #fff; }
+
+  .dropdown-item-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .mark-btn {
+    padding: 4px 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .mark-btn.single { background: #238636; color: #fff; }
+  .mark-btn.line { background: #3d5a80; color: #fff; }
+  .mark-btn:active { opacity: 0.7; }
+
+  .evo-chain-preview {
+    font-size: 11px;
+    color: #666;
+    padding: 4px 14px 8px;
+    border-bottom: 1px solid #1a1a2e;
+  }
+
+  .transfer-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #2a2a4a;
+  }
+  .transfer-filters label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #aaa;
+    cursor: pointer;
+  }
+  .transfer-filters input { width: 15px; height: 15px; }
+
+  /* App tabs */
+  .app-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #333;
+  }
+  .app-tab {
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .app-tab.active { color: #ffcb05; border-bottom-color: #ffcb05; }
+  .app-tab-panel { display: none; }
+  .app-tab-panel.active { display: block; }
+
+  /* Mega table */
+  .mega-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .mega-table th {
+    text-align: left;
+    padding: 10px 8px;
+    border-bottom: 2px solid #333;
+    color: #888;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    background: #16213e;
+  }
+  .mega-table td { padding: 8px; border-bottom: 1px solid #2a2a4a; }
+  .mega-table tr:hover { background: #1e2a4a; }
+  .mega-cell {
+    text-align: center;
+    width: 60px;
+  }
+
+  /* Overview tiles */
+  .overview-key {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    padding: 10px 0 14px;
+    border-bottom: 1px solid #2a2a4a;
+    margin-bottom: 14px;
+  }
+  .overview-key-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: #aaa;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .dot-done { background: #238636; }
+  .dot-priority { background: #d29922; }
+  .dot-need { background: #da3633; }
+
+  .overview-filters {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .overview-filter-btn {
+    padding: 6px 14px;
+    border: 1px solid #444;
+    border-radius: 16px;
+    background: transparent;
+    color: #aaa;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .overview-filter-btn.active {
+    background: #3d5a80;
+    border-color: #5b9bd5;
+    color: #fff;
+  }
+
+  .tile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .poke-tile {
+    background: #0d1117;
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .poke-tile:hover { border-color: #444; }
+  .poke-tile img {
+    width: 56px;
+    height: 56px;
+    image-rendering: pixelated;
+    display: block;
+    margin: 0 auto 6px;
+  }
+  .poke-tile .tile-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .poke-tile .tile-num {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+  .tile-players {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: flex-start;
+    padding-left: 8px;
+  }
+  .tile-player-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #bbb;
+  }
+  .tile-player-row .dot { width: 8px; height: 8px; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #16213e;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 360px;
+  }
+  .modal h3 { color: #ffcb05; margin-bottom: 16px; font-size: 16px; }
+  .modal input[type=text] {
+    width: 100%;
+    padding: 12px 14px;
+    background: #0d1117;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+    margin-bottom: 16px;
+  }
+  .modal input[type=text]:focus { border-color: #5b9bd5; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .modal-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .modal-btn.cancel { background: #333; color: #aaa; }
+  .modal-btn.confirm { background: #5b9bd5; color: #fff; }
+
+  .modal-wide { max-width: 480px; }
+  .modal-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 16px;
+    border-bottom: 2px solid #333;
+  }
+  .modal-tab {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #888;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+  }
+  .modal-tab.active { color: #ffcb05; border-bottom-color: #ffcb05; }
+  .modal-panel { display: none; }
+  .modal-panel.active { display: block; }
+  .modal select {
+    width: 100%;
+    padding: 10px 12px;
+    background: #0d1117;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    margin-bottom: 12px;
+    -webkit-appearance: none;
+  }
+  .modal select:focus { border-color: #5b9bd5; }
+  .modal textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: #0d1117;
+    color: #7ee787;
+    font-family: monospace;
+    font-size: 11px;
+    border: 1px solid #333;
+    border-radius: 8px;
+    outline: none;
+    resize: vertical;
+    min-height: 100px;
+    margin-bottom: 12px;
+  }
+  .modal textarea:focus { border-color: #5b9bd5; }
+  .modal label {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #238636;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 300;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    max-width: 90%;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #da3633; }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+  }
+  .spinner {
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    border: 3px solid #333;
+    border-top-color: #5b9bd5;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+  }
+  .empty-state p { margin-bottom: 16px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>Pokémon Tracker</h1>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="openImportExportModal()" title="Import/Export">&#x2699;</button>
+      <button class="icon-btn" onclick="openSyncModal()" title="Sync Pokédex">&#x21bb;</button>
+      <button class="icon-btn" onclick="openAddPlayerModal()" title="Add Player">&#x2b;</button>
+    </div>
+  </div>
+  <div class="player-bar" id="playerBar"></div>
+</div>
+
+<div class="content" id="mainContent" style="display:none;">
+  <!-- No players state -->
+  <div id="noPlayersState" class="empty-state" style="display:none;">
+    <p>No players yet. Tap <b>+</b> in the top right to add a player.</p>
+  </div>
+
+  <!-- No pokemon state -->
+  <div id="noPokemonState" class="empty-state" style="display:none;">
+    <p>No Pokémon loaded. Tap <b>&#x21bb;</b> in the top right to sync from the Pokédex.</p>
+  </div>
+
+  <!-- Main UI (shown when players + pokemon exist) -->
+  <div id="mainUI" style="display:none;">
+
+    <!-- App Tabs -->
+    <div class="app-tabs" id="appTabs">
+      <div class="app-tab active" data-tab="main">Tracker</div>
+      <div class="app-tab" data-tab="mega">Mega</div>
+      <div class="app-tab" data-tab="forms">Forms</div>
+      <div class="app-tab" data-tab="overview">Overview</div>
+    </div>
+
+    <!-- TAB: Main Tracker -->
+    <div class="app-tab-panel active" id="tab-main">
+      <!-- Mark as Done -->
+      <div class="section">
+        <h2>Mark as Done</h2>
+        <div class="search-box">
+          <input type="text" class="search-input" id="doneSearch"
+            placeholder="Type a Pokémon name..." autocomplete="off" />
+          <div class="dropdown" id="doneDropdown"></div>
+        </div>
+      </div>
+
+      <!-- Mark as Priority -->
+      <div class="section">
+        <h2>Mark as Priority</h2>
+        <div class="search-box">
+          <input type="text" class="search-input" id="prioritySearch"
+            placeholder="Type a Pokémon name..." autocomplete="off" />
+          <div class="dropdown" id="priorityDropdown"></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="section">
+        <div class="stats">
+          <div><div class="stat-value" id="statNeed">-</div><div class="stat-label">Need</div></div>
+          <div><div class="stat-value" id="statDone">-</div><div class="stat-label">Done</div></div>
+          <div><div class="stat-value" id="statPriority">-</div><div class="stat-label">Priority</div></div>
+        </div>
+      </div>
+
+      <!-- Search Strings -->
+      <div class="section">
+        <h2>Search Strings</h2>
+        <div id="searchStringsContainer"></div>
+      </div>
+
+      <!-- Transfer Strings -->
+      <div class="section">
+        <h2>Transfer Strings</h2>
+        <div class="transfer-filters" id="transferFilters"></div>
+        <div id="transferStringsContainer"></div>
+      </div>
+    </div>
+
+    <!-- TAB: Forms -->
+    <div class="app-tab-panel" id="tab-forms">
+      <div class="section">
+        <h2>Form Tracker</h2>
+        <div class="overview-key">
+          <span class="overview-key-item"><span class="dot dot-done"></span> Done</span>
+          <span class="overview-key-item"><span class="dot dot-priority"></span> Priority</span>
+          <span class="overview-key-item"><span class="dot dot-need"></span> Need</span>
+        </div>
+        <div class="overview-filters" id="formsFilters"></div>
+        <div id="formsContainer">
+          <p style="color:#666;">Switch to this tab to view forms.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Overview -->
+    <div class="app-tab-panel" id="tab-overview">
+      <div class="section">
+        <h2>Collection Overview</h2>
+        <div class="overview-key">
+          <span class="overview-key-item"><span class="dot dot-done"></span> Done</span>
+          <span class="overview-key-item"><span class="dot dot-priority"></span> Priority</span>
+          <span class="overview-key-item"><span class="dot dot-need"></span> Need</span>
+        </div>
+        <div class="overview-filters" id="overviewFilters"></div>
+        <div id="overviewContainer">
+          <p style="color:#666;">Switch to this tab to view tiles.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Mega Lucky Shiny Tracker -->
+    <div class="app-tab-panel" id="tab-mega">
+      <div class="section">
+        <h2>Mega Lucky Shiny Tracker</h2>
+        <div id="megaTableContainer">
+          <p style="color:#666;">Loading mega data...</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Add Player Modal -->
+<div class="modal-overlay" id="addPlayerModal">
+  <div class="modal">
+    <h3>Add Player</h3>
+    <input type="text" id="newPlayerName" placeholder="Player name..." />
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeAddPlayerModal()">Cancel</button>
+      <button class="modal-btn confirm" id="addPlayerConfirm" onclick="confirmAddPlayer()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sync Modal -->
+<div class="modal-overlay" id="syncModal">
+  <div class="modal">
+    <h3>Sync Pokédex</h3>
+    <p style="font-size:13px;color:#aaa;margin-bottom:16px;">Fetch the latest Pokémon from pokemondb.net. Existing data won't be affected.</p>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeSyncModal()">Cancel</button>
+      <button class="modal-btn confirm" id="syncConfirm" onclick="confirmSync()">Sync</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import/Export Modal -->
+<div class="modal-overlay" id="importExportModal">
+  <div class="modal modal-wide">
+    <h3>Import / Export</h3>
+    <div class="modal-tabs">
+      <div class="modal-tab active" data-mtab="export" onclick="switchModalTab('export')">Export</div>
+      <div class="modal-tab" data-mtab="import" onclick="switchModalTab('import')">Import</div>
+    </div>
+
+    <!-- Export Panel -->
+    <div class="modal-panel active" id="mtab-export">
+      <label>Player to export</label>
+      <select id="exportPlayerSelect"></select>
+      <textarea id="exportOutput" readonly placeholder="Click Export to generate data..."></textarea>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeImportExportModal()">Close</button>
+        <button class="modal-btn confirm" id="exportBtn" onclick="doExport()">Export</button>
+        <button class="modal-btn confirm" id="copyExportBtn" onclick="copyExport()" style="display:none;">Copy</button>
+      </div>
+    </div>
+
+    <!-- Import Panel -->
+    <div class="modal-panel" id="mtab-import">
+      <label>Import into player</label>
+      <select id="importPlayerSelect"></select>
+      <label>Paste exported data</label>
+      <textarea id="importInput" placeholder="Paste the JSON export string here..."></textarea>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeImportExportModal()">Close</button>
+        <button class="modal-btn confirm" id="importBtn" onclick="doImport()">Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loading" id="loadingScreen">
+  <div class="spinner"></div>
+  <p style="margin-top:12px;">Loading...</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var allPokemon = [];
+var players = [];
+var activePlayer = 0;
+var evoChains = {}; // base name -> [base names in chain]
+var megaPokemon = [];
+var megaPlayers = [];
+
+function isMega(name) {
+  return name.indexOf('Mega ') === 0 || name.indexOf('Primal ') === 0;
+}
+
+// ---- Init ----
+google.script.run
+  .withSuccessHandler(function(data) {
+    players = data.players;
+    allPokemon = data.pokemon;
+    evoChains = data.evoChains || {};
+    init();
+  })
+  .withFailureHandler(function(err) {
+    document.getElementById('loadingScreen').innerHTML =
+      '<p style="color:#da3633;">Error: ' + err.message + '</p>';
+  })
+  .getSheetData();
+
+function init() {
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+
+  if (players.length === 0) {
+    document.getElementById('noPlayersState').style.display = 'block';
+    document.getElementById('noPokemonState').style.display = 'none';
+    document.getElementById('mainUI').style.display = 'none';
+    buildPlayerBar();
+    return;
+  }
+
+  if (allPokemon.length === 0) {
+    document.getElementById('noPlayersState').style.display = 'none';
+    document.getElementById('noPokemonState').style.display = 'block';
+    document.getElementById('mainUI').style.display = 'none';
+    buildPlayerBar();
+    return;
+  }
+
+  document.getElementById('noPlayersState').style.display = 'none';
+  document.getElementById('noPokemonState').style.display = 'none';
+  document.getElementById('mainUI').style.display = 'block';
+  buildPlayerBar();
+  updateStats();
+  renderSearchStrings();
+  renderTransferFilters();
+  renderTransferStrings();
+  setupTabs();
+  loadMegaData();
+}
+
+// ---- Player Bar ----
+function buildPlayerBar() {
+  var bar = document.getElementById('playerBar');
+  bar.innerHTML = '';
+  for (var i = 0; i < players.length; i++) {
+    var btn = document.createElement('button');
+    btn.className = 'player-btn' + (i === activePlayer ? ' active' : '');
+    btn.textContent = players[i].name;
+    btn.setAttribute('data-idx', i);
+    btn.addEventListener('click', function() {
+      activePlayer = parseInt(this.getAttribute('data-idx'));
+      var btns = document.querySelectorAll('.player-btn');
+      for (var b = 0; b < btns.length; b++) btns[b].classList.remove('active');
+      this.classList.add('active');
+      updateStats();
+      document.getElementById('doneSearch').value = '';
+      document.getElementById('doneDropdown').style.display = 'none';
+      document.getElementById('prioritySearch').value = '';
+      document.getElementById('priorityDropdown').style.display = 'none';
+      // Refresh tile tabs if visible
+      if (document.getElementById('tab-overview').classList.contains('active')) {
+        renderOverviewTiles();
+      }
+      if (document.getElementById('tab-forms').classList.contains('active')) {
+        renderFormsTiles();
+      }
+    });
+    bar.appendChild(btn);
+  }
+}
+
+// ---- Stats ----
+function updateStats() {
+  var need = 0, done = 0, priority = 0;
+  for (var i = 0; i < allPokemon.length; i++) {
+    if (isMega(allPokemon[i].name)) continue;
+    var p = allPokemon[i].players[activePlayer];
+    if (!p) continue;
+    if (p.status === 'Done') {
+      done++;
+      if (p.priority.toLowerCase() === 'x') priority++;
+    } else {
+      need++;
+    }
+  }
+  document.getElementById('statNeed').textContent = need;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statPriority').textContent = priority;
+}
+
+// ---- Search Strings ----
+function buildSearchString(playerIndex, includePriority) {
+  var numbers = [];
+  for (var i = 0; i < allPokemon.length; i++) {
+    if (isMega(allPokemon[i].name)) continue;
+    var p = allPokemon[i].players[playerIndex];
+    if (!p) continue;
+    var num = allPokemon[i].number;
+    if (!num) continue;
+    if (p.status !== 'Done') {
+      numbers.push(num);
+    } else if (includePriority && p.priority.toLowerCase() === 'x') {
+      numbers.push(num);
+    }
+  }
+  return '!traded&!shadow&!4*&!mythical&' + numbers.join(',');
+}
+
+// Store full strings for copying
+var searchStrings = [];
+
+function renderSearchStrings() {
+  var container = document.getElementById('searchStringsContainer');
+  if (!container) return;
+  searchStrings = [];
+  var html = '';
+
+  for (var i = 0; i < players.length; i++) {
+    var checked = true;
+    // Preserve checkbox state if already rendered
+    var existing = document.getElementById('ssPriority_' + i);
+    if (existing) checked = existing.checked;
+
+    var str = buildSearchString(i, checked);
+    searchStrings.push(str);
+
+    html += '<div class="search-string-row">';
+    html += '<span class="ss-player">' + players[i].name + '</span>';
+    html += '<label class="ss-priority"><input type="checkbox" id="ssPriority_' + i + '" data-idx="' + i + '" ' + (checked ? 'checked' : '') + ' /> Priority</label>';
+    html += '<div class="ss-string" data-idx="' + i + '" title="Tap to copy">' + str + '</div>';
+    html += '<span class="ss-copied" id="ssCopied_' + i + '">Copied!</span>';
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+
+  // Attach click-to-copy handlers
+  var strings = container.querySelectorAll('.ss-string');
+  for (var s = 0; s < strings.length; s++) {
+    strings[s].addEventListener('click', function() {
+      var idx = parseInt(this.getAttribute('data-idx'));
+      var text = searchStrings[idx];
+      var copiedEl = document.getElementById('ssCopied_' + idx);
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          copiedEl.classList.add('show');
+          setTimeout(function() { copiedEl.classList.remove('show'); }, 1500);
+        });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        copiedEl.classList.add('show');
+        setTimeout(function() { copiedEl.classList.remove('show'); }, 1500);
+      }
+    });
+  }
+
+  // Attach priority checkbox handlers
+  var checkboxes = container.querySelectorAll('input[type=checkbox]');
+  for (var c = 0; c < checkboxes.length; c++) {
+    checkboxes[c].addEventListener('change', function() {
+      var idx = parseInt(this.getAttribute('data-idx'));
+      var str = buildSearchString(idx, this.checked);
+      searchStrings[idx] = str;
+      var stringEl = container.querySelectorAll('.ss-string')[idx];
+      if (stringEl) stringEl.textContent = str;
+    });
+  }
+}
+
+// ---- Evolution Chain Helpers ----
+
+// Get the base name of a pokemon (strip Mega, Alolan, etc. prefixes)
+function getBaseName(name) {
+  var prefixes = ['Mega ', 'Primal ', 'Alolan ', 'Galarian ', 'Hisuian ', 'Paldean '];
+  for (var i = 0; i < prefixes.length; i++) {
+    if (name.indexOf(prefixes[i]) === 0) {
+      return name.substring(prefixes[i].length);
+    }
+  }
+  // Handle "X Form/Forme/Cloak" suffixes — base name is the first word(s) before the form keyword
+  // But only if the full name has a known base in evoChains
+  return name;
+}
+
+// Find all pokemon in the sheet that belong to the same evolution chain as the given pokemon
+function getEvolutionLineRows(pokemon) {
+  var baseName = getBaseName(pokemon.name);
+
+  // Look up the chain using the base name
+  var chain = evoChains[baseName];
+  if (!chain || chain.length <= 1) return [];
+
+  // Find all sheet rows whose base name is in this chain
+  var rows = [];
+  for (var i = 0; i < allPokemon.length; i++) {
+    var mon = allPokemon[i];
+    var monBase = getBaseName(mon.name);
+    for (var c = 0; c < chain.length; c++) {
+      if (monBase === chain[c]) {
+        rows.push(mon);
+        break;
+      }
+    }
+  }
+  return rows;
+}
+
+// Get chain display string for a pokemon
+function getChainDisplay(pokemon) {
+  var baseName = getBaseName(pokemon.name);
+  var chain = evoChains[baseName];
+  if (!chain || chain.length <= 1) return null;
+  return chain.join(' → ');
+}
+
+// ---- Shared Search/Dropdown Logic ----
+function setupSearchBox(inputId, dropdownId, action) {
+  var input = document.getElementById(inputId);
+  var dd = document.getElementById(dropdownId);
+
+  input.addEventListener('input', function() {
+    var val = this.value.toLowerCase().trim();
+    if (!val) { dd.style.display = 'none'; return; }
+
+    var matches = [];
+    for (var i = 0; i < allPokemon.length; i++) {
+      var mon = allPokemon[i];
+      if (isMega(mon.name)) continue;
+      if (mon.name.toLowerCase().indexOf(val) > -1 || mon.number.indexOf(val) === 0) {
+        matches.push(mon);
+      }
+      if (matches.length >= 20) break;
+    }
+
+    if (matches.length === 0) { dd.style.display = 'none'; return; }
+
+    var html = '';
+    for (var m = 0; m < matches.length; m++) {
+      var mon = matches[m];
+      var pData = mon.players[activePlayer];
+      var statusClass, statusText;
+      if (!pData) {
+        statusClass = 'status-need'; statusText = 'Need';
+      } else if (pData.status === 'Done') {
+        if (pData.priority.toLowerCase() === 'x') {
+          statusClass = 'status-priority'; statusText = 'Priority';
+        } else {
+          statusClass = 'status-done'; statusText = 'Done';
+        }
+      } else {
+        statusClass = 'status-need'; statusText = 'Need';
+      }
+
+      var evoLine = getEvolutionLineRows(mon);
+      var chainDisplay = getChainDisplay(mon);
+      var hasLine = evoLine.length > 1;
+
+      html += '<div class="dropdown-item">';
+      html += '<span class="num">#' + mon.number + '</span>';
+      html += '<span class="name">' + mon.name + '</span>';
+      html += '<span class="status ' + statusClass + '">' + statusText + '</span>';
+      html += '<div class="dropdown-item-actions">';
+      html += '<button class="mark-btn single" data-row="' + mon.row + '" data-name="' + mon.name + '" data-action="single">Only</button>';
+      if (hasLine) {
+        html += '<button class="mark-btn line" data-row="' + mon.row + '" data-name="' + mon.name + '" data-action="line">Line</button>';
+      }
+      html += '</div></div>';
+
+      if (hasLine && chainDisplay) {
+        html += '<div class="evo-chain-preview">' + chainDisplay + '</div>';
+      }
+    }
+
+    dd.innerHTML = html;
+    dd.style.display = 'block';
+
+    // Attach button handlers
+    var btns = dd.querySelectorAll('.mark-btn');
+    for (var bi = 0; bi < btns.length; bi++) {
+      btns[bi].addEventListener('click', function(e) {
+        e.stopPropagation();
+        var row = parseInt(this.getAttribute('data-row'));
+        var name = this.getAttribute('data-name');
+        var isLine = this.getAttribute('data-action') === 'line';
+
+        if (isLine) {
+          var mon = null;
+          for (var fi = 0; fi < allPokemon.length; fi++) {
+            if (allPokemon[fi].row === row) { mon = allPokemon[fi]; break; }
+          }
+          if (mon) {
+            var lineRows = getEvolutionLineRows(mon);
+            performBatchAction(lineRows, action, input, dd);
+          }
+        } else {
+          performSingleAction(row, name, action, input, dd);
+        }
+      });
+    }
+  });
+}
+
+function performSingleAction(sheetRow, name, action, input, dd) {
+  dd.style.display = 'none';
+  input.value = '';
+
+  var serverFn = action === 'done' ? 'markAsDone' : 'markAsPriority';
+  google.script.run
+    .withSuccessHandler(function() {
+      for (var i = 0; i < allPokemon.length; i++) {
+        if (allPokemon[i].row === sheetRow) {
+          if (action === 'done') {
+            allPokemon[i].players[activePlayer].status = 'Done';
+          } else {
+            allPokemon[i].players[activePlayer].priority = 'x';
+          }
+          break;
+        }
+      }
+      updateStats();
+      renderSearchStrings();
+      renderTransferStrings();
+      var label = action === 'done' ? 'Done' : 'Priority';
+      showToast(name + ' marked as ' + label + '!');
+    })
+    .withFailureHandler(function(err) {
+      showToast('Error: ' + err.message, true);
+    })
+    [serverFn](sheetRow, activePlayer);
+}
+
+function performBatchAction(lineRows, action, input, dd) {
+  dd.style.display = 'none';
+  input.value = '';
+
+  var rowNumbers = lineRows.map(function(m) { return m.row; });
+  var names = lineRows.map(function(m) { return m.name; });
+
+  google.script.run
+    .withSuccessHandler(function() {
+      for (var i = 0; i < lineRows.length; i++) {
+        for (var j = 0; j < allPokemon.length; j++) {
+          if (allPokemon[j].row === lineRows[i].row) {
+            if (action === 'done') {
+              allPokemon[j].players[activePlayer].status = 'Done';
+            } else {
+              allPokemon[j].players[activePlayer].priority = 'x';
+            }
+            break;
+          }
+        }
+      }
+      updateStats();
+      renderSearchStrings();
+      renderTransferStrings();
+      var label = action === 'done' ? 'Done' : 'Priority';
+      showToast(names.length + ' Pokémon marked as ' + label + '!');
+    })
+    .withFailureHandler(function(err) {
+      showToast('Error: ' + err.message, true);
+    })
+    .markMultiple(rowNumbers, activePlayer, action);
+}
+
+// ---- Transfer Strings ----
+var TRANSFER_KEYWORDS = ['costume', 'shadow', 'xxl', 'xxs', 'dynamax', 'background'];
+var TRANSFER_STATIC = '!traded&!shiny&!4*&!mythical&!#&';
+var transferStrings = [];
+
+function buildTransferString(playerIndex, includePriorities, activeKeywords) {
+  // Build keyword prefix
+  var prefix = TRANSFER_STATIC;
+  for (var k = 0; k < activeKeywords.length; k++) {
+    prefix += '!' + activeKeywords[k] + '&';
+  }
+
+  var numbers = [];
+  for (var i = 0; i < allPokemon.length; i++) {
+    var mon = allPokemon[i];
+    if (!mon.number) continue;
+    if (isMega(mon.name)) continue;
+
+    // Check if ALL other players have this pokemon done
+    // and (optionally) none of them have it as priority
+    var allOthersDone = true;
+    for (var p = 0; p < players.length; p++) {
+      if (p === playerIndex) continue;
+      var pData = mon.players[p];
+      if (!pData || pData.status !== 'Done') {
+        allOthersDone = false;
+        break;
+      }
+      // If priority checkbox is checked for this player, exclude if other player wants priority
+      if (includePriorities[p] && pData.priority.toLowerCase() === 'x') {
+        allOthersDone = false;
+        break;
+      }
+    }
+
+    if (allOthersDone) {
+      numbers.push(mon.number);
+    }
+  }
+
+  return prefix + numbers.join(',');
+}
+
+function renderTransferFilters() {
+  var container = document.getElementById('transferFilters');
+  var html = '';
+  for (var k = 0; k < TRANSFER_KEYWORDS.length; k++) {
+    html += '<label><input type="checkbox" class="tf-keyword" data-keyword="' + TRANSFER_KEYWORDS[k] + '" checked /> !' + TRANSFER_KEYWORDS[k] + '</label>';
+  }
+  container.innerHTML = html;
+
+  // Attach change handlers
+  var checkboxes = container.querySelectorAll('.tf-keyword');
+  for (var c = 0; c < checkboxes.length; c++) {
+    checkboxes[c].addEventListener('change', function() {
+      renderTransferStrings();
+    });
+  }
+}
+
+function getActiveKeywords() {
+  var keywords = [];
+  var checkboxes = document.querySelectorAll('.tf-keyword');
+  for (var c = 0; c < checkboxes.length; c++) {
+    if (checkboxes[c].checked) {
+      keywords.push(checkboxes[c].getAttribute('data-keyword'));
+    }
+  }
+  return keywords;
+}
+
+function renderTransferStrings() {
+  var container = document.getElementById('transferStringsContainer');
+  if (!container) return;
+  transferStrings = [];
+  var activeKeywords = getActiveKeywords();
+  var html = '';
+
+  for (var i = 0; i < players.length; i++) {
+    // Build priority include array — check existing checkbox state
+    var includePriorities = [];
+    for (var p = 0; p < players.length; p++) {
+      if (p === i) {
+        includePriorities.push(false); // own priority doesn't matter
+        continue;
+      }
+      var existing = document.getElementById('tsPriority_' + i + '_' + p);
+      includePriorities.push(existing ? existing.checked : true);
+    }
+
+    var str = buildTransferString(i, includePriorities, activeKeywords);
+    transferStrings.push(str);
+
+    html += '<div class="search-string-row">';
+    html += '<span class="ss-player">' + players[i].name + '</span>';
+    html += '<div class="ss-priority" style="flex-direction:column;align-items:flex-start;gap:2px;">';
+    for (var op = 0; op < players.length; op++) {
+      if (op === i) continue;
+      var checked = includePriorities[op] ? 'checked' : '';
+      html += '<label style="display:flex;align-items:center;gap:4px;font-size:11px;"><input type="checkbox" id="tsPriority_' + i + '_' + op + '" data-player="' + i + '" class="ts-priority-cb" style="width:14px;height:14px;" ' + checked + ' />' + players[op].name + ' pri</label>';
+    }
+    html += '</div>';
+    html += '<div class="ss-string" data-tsidx="' + i + '" title="Tap to copy">' + str + '</div>';
+    html += '<span class="ss-copied" id="tsCopied_' + i + '">Copied!</span>';
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+
+  // Click to copy
+  var strings = container.querySelectorAll('.ss-string');
+  for (var s = 0; s < strings.length; s++) {
+    strings[s].addEventListener('click', function() {
+      var idx = parseInt(this.getAttribute('data-tsidx'));
+      var text = transferStrings[idx];
+      var copiedEl = document.getElementById('tsCopied_' + idx);
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          copiedEl.classList.add('show');
+          setTimeout(function() { copiedEl.classList.remove('show'); }, 1500);
+        });
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        copiedEl.classList.add('show');
+        setTimeout(function() { copiedEl.classList.remove('show'); }, 1500);
+      }
+    });
+  }
+
+  // Priority checkbox change → regenerate just that player's string
+  var priCbs = container.querySelectorAll('.ts-priority-cb');
+  for (var pc = 0; pc < priCbs.length; pc++) {
+    priCbs[pc].addEventListener('change', function() {
+      renderTransferStrings();
+    });
+  }
+}
+
+// ---- App Tabs ----
+function setupTabs() {
+  var tabs = document.querySelectorAll('.app-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    tabs[i].addEventListener('click', function() {
+      var target = this.getAttribute('data-tab');
+      var allTabs = document.querySelectorAll('.app-tab');
+      var allPanels = document.querySelectorAll('.app-tab-panel');
+      for (var t = 0; t < allTabs.length; t++) allTabs[t].classList.remove('active');
+      for (var p = 0; p < allPanels.length; p++) allPanels[p].classList.remove('active');
+      this.classList.add('active');
+      document.getElementById('tab-' + target).classList.add('active');
+      if (target === 'overview') {
+        renderOverviewFilters();
+        renderOverviewTiles();
+      }
+      if (target === 'forms') {
+        renderFormsFilters();
+        renderFormsTiles();
+      }
+    });
+  }
+}
+
+// ---- Mega Data ----
+function loadMegaData() {
+  google.script.run
+    .withSuccessHandler(function(data) {
+      megaPlayers = data.players;
+      megaPokemon = data.pokemon;
+      renderMegaTable();
+    })
+    .withFailureHandler(function(err) {
+      document.getElementById('megaTableContainer').innerHTML =
+        '<p style="color:#da3633;">Error loading mega data: ' + err.message + '</p>';
+    })
+    .getMegaData();
+}
+
+function renderMegaTable() {
+  var container = document.getElementById('megaTableContainer');
+  if (megaPokemon.length === 0) {
+    container.innerHTML = '<p style="color:#666;">No mega Pokémon yet. Sync the Pokédex to populate.</p>';
+    return;
+  }
+
+  var html = '<table class="mega-table"><thead><tr>';
+  html += '<th>#</th><th>Pokémon</th>';
+  for (var p = 0; p < megaPlayers.length; p++) {
+    html += '<th style="text-align:center;">' + megaPlayers[p].name + '</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  for (var i = 0; i < megaPokemon.length; i++) {
+    var mon = megaPokemon[i];
+    html += '<tr>';
+    html += '<td style="color:#888;">' + mon.number + '</td>';
+    html += '<td>' + mon.name + '</td>';
+    for (var p = 0; p < megaPlayers.length; p++) {
+      var isDone = mon.players[p] && mon.players[p].status === 'Done';
+      html += '<td class="mega-cell">';
+      html += '<input type="checkbox" class="mega-cb" data-row="' + mon.row + '" data-pidx="' + p + '" data-midx="' + i + '"' + (isDone ? ' checked' : '') + ' style="width:18px;height:18px;cursor:pointer;" />';
+      html += '</td>';
+    }
+    html += '</tr>';
+  }
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+
+  // Attach checkbox change handlers
+  var cbs = container.querySelectorAll('.mega-cb');
+  for (var c = 0; c < cbs.length; c++) {
+    cbs[c].addEventListener('change', function() {
+      var row = parseInt(this.getAttribute('data-row'));
+      var pidx = parseInt(this.getAttribute('data-pidx'));
+      var midx = parseInt(this.getAttribute('data-midx'));
+      var cb = this;
+      var nowChecked = cb.checked;
+
+      if (nowChecked) {
+        google.script.run
+          .withSuccessHandler(function() {
+            megaPokemon[midx].players[pidx].status = 'Done';
+          })
+          .withFailureHandler(function(err) {
+            cb.checked = false;
+            showToast('Error: ' + err.message, true);
+          })
+          .markMegaDone(row, pidx);
+      } else {
+        google.script.run
+          .withSuccessHandler(function() {
+            megaPokemon[midx].players[pidx].status = '';
+          })
+          .withFailureHandler(function(err) {
+            cb.checked = true;
+            showToast('Error: ' + err.message, true);
+          })
+          .unmarkMegaDone(row, pidx);
+      }
+    });
+  }
+}
+
+// ---- Overview Tab ----
+var overviewFilter = 'all'; // 'all', 'need', 'done', 'priority'
+var overviewRendered = false;
+
+function getSpriteUrl(name) {
+  // Use Pokemon GO sprites which have better form coverage
+  return 'https://img.pokemondb.net/sprites/go/normal/1x/' + getSpriteSlug(name) + '.png';
+}
+
+function getSpriteSlug(name) {
+  // Normalize accented characters
+  var normalized = name
+    .replace(/[\u00e9\u00c9]/g, 'e')  // é, É
+    .replace(/[\u00e8\u00c8]/g, 'e')  // è, È
+    .replace(/[\u00f1\u00d1]/g, 'n')  // ñ, Ñ
+    .replace(/[\u00fc\u00dc]/g, 'u')  // ü, Ü
+    .replace(/[\u2640]/g, '-f')       // ♀
+    .replace(/[\u2642]/g, '-m');      // ♂
+
+  // Prefixes that become suffixes in the URL
+  var prefixMap = [
+    { prefix: 'Mega ', suffix: '-mega' },
+    { prefix: 'Primal ', suffix: '-primal' },
+    { prefix: 'Alolan ', suffix: '-alolan' },
+    { prefix: 'Galarian ', suffix: '-galarian' },
+    { prefix: 'Hisuian ', suffix: '-hisuian' },
+    { prefix: 'Paldean ', suffix: '-paldean' }
+  ];
+
+  var suffix = '';
+  var baseName = normalized;
+
+  for (var i = 0; i < prefixMap.length; i++) {
+    if (normalized.indexOf(prefixMap[i].prefix) === 0) {
+      suffix = prefixMap[i].suffix;
+      baseName = normalized.substring(prefixMap[i].prefix.length);
+      break;
+    }
+  }
+
+  // Strip form descriptor words, keeping the variant identifier
+  // e.g. "Castform Sunny Form" → "Castform Sunny", "Zygarde 10% Forme" → "Zygarde 10%"
+  // e.g. "Flabebe Red Flower" → "Flabebe Red"
+  var formWords = [' Flower', ' Form', ' Forme', ' Cloak', ' Style', ' Mode', ' Breed', ' Size', ' Pattern', ' Trim', ' Coat', ' Sea', ' Star'];
+  for (var f = 0; f < formWords.length; f++) {
+    var idx = baseName.lastIndexOf(formWords[f]);
+    if (idx > 0) {
+      baseName = baseName.substring(0, idx);
+      break;
+    }
+  }
+
+  // Build slug: lowercase, strip special chars, spaces to hyphens
+  var slug = baseName.toLowerCase()
+    .replace(/[.':\u2019%]+/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/-$/, '');
+
+  return slug + suffix;
+}
+
+function renderOverviewFilters() {
+  var container = document.getElementById('overviewFilters');
+  var filters = [
+    { key: 'all', label: 'All' },
+    { key: 'need', label: 'Need' },
+    { key: 'done', label: 'Done' },
+    { key: 'priority', label: 'Priority' }
+  ];
+  var html = '';
+  for (var i = 0; i < filters.length; i++) {
+    html += '<button class="overview-filter-btn' + (overviewFilter === filters[i].key ? ' active' : '') + '" data-filter="' + filters[i].key + '">' + filters[i].label + '</button>';
+  }
+  container.innerHTML = html;
+
+  var btns = container.querySelectorAll('.overview-filter-btn');
+  for (var b = 0; b < btns.length; b++) {
+    btns[b].addEventListener('click', function() {
+      overviewFilter = this.getAttribute('data-filter');
+      var all = container.querySelectorAll('.overview-filter-btn');
+      for (var a = 0; a < all.length; a++) all[a].classList.remove('active');
+      this.classList.add('active');
+      renderOverviewTiles();
+    });
+  }
+}
+
+// Build a lookup for mega status by name
+function getMegaStatus(monName, playerIdx) {
+  for (var i = 0; i < megaPokemon.length; i++) {
+    if (megaPokemon[i].name === monName && megaPokemon[i].players[playerIdx]) {
+      return megaPokemon[i].players[playerIdx].status === 'Done';
+    }
+  }
+  return false;
+}
+
+function renderOverviewTiles() {
+  var container = document.getElementById('overviewContainer');
+  if (allPokemon.length === 0 || players.length === 0) {
+    container.innerHTML = '<p style="color:#666;">No data to display.</p>';
+    return;
+  }
+
+  // Combine main (non-mega) + mega into one list for overview
+  var combined = [];
+  for (var i = 0; i < allPokemon.length; i++) {
+    var mon = allPokemon[i];
+    if (isMega(mon.name)) continue; // skip megas from main sheet
+    combined.push({ name: mon.name, number: mon.number, source: 'main', idx: i });
+  }
+  for (var i = 0; i < megaPokemon.length; i++) {
+    var mon = megaPokemon[i];
+    combined.push({ name: mon.name, number: mon.number, source: 'mega', idx: i });
+  }
+
+  // Sort by dex number then name
+  combined.sort(function(a, b) {
+    var na = parseInt(a.number) || 0, nb = parseInt(b.number) || 0;
+    if (na !== nb) return na - nb;
+    return a.name.localeCompare(b.name);
+  });
+
+  // Filter based on active player and selected filter
+  var filtered = [];
+  for (var i = 0; i < combined.length; i++) {
+    var c = combined[i];
+    var isDone, isPriority;
+
+    if (c.source === 'main') {
+      var pData = allPokemon[c.idx].players[activePlayer];
+      if (!pData) continue;
+      isDone = pData.status === 'Done';
+      isPriority = isDone && pData.priority.toLowerCase() === 'x';
+    } else {
+      var mp = megaPokemon[c.idx].players[activePlayer];
+      isDone = mp && mp.status === 'Done';
+      isPriority = false; // megas never have priority
+    }
+
+    if (overviewFilter === 'need' && isDone) continue;
+    if (overviewFilter === 'done' && !isDone) continue;
+    if (overviewFilter === 'priority' && !isPriority) continue;
+
+    filtered.push(c);
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color:#666;">No Pokémon match this filter.</p>';
+    return;
+  }
+
+  var html = '<div class="tile-grid">';
+  for (var i = 0; i < filtered.length; i++) {
+    var c = filtered[i];
+    var imgUrl = getSpriteUrl(c.name);
+    var displayName = c.name.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+    html += '<div class="poke-tile">';
+    html += '<img src="' + imgUrl + '" alt="' + displayName + '" onerror="this.style.display=\'none\'" loading="lazy" />';
+    html += '<div class="tile-name" title="' + displayName + '">' + displayName + '</div>';
+    html += '<div class="tile-num">#' + c.number + '</div>';
+    html += '<div class="tile-players">';
+
+    for (var p = 0; p < players.length; p++) {
+      var dotClass, dotTitle;
+      if (c.source === 'main') {
+        var pd = allPokemon[c.idx].players[p];
+        if (!pd || pd.status !== 'Done') {
+          dotClass = 'dot-need'; dotTitle = 'Need';
+        } else if (pd.priority.toLowerCase() === 'x') {
+          dotClass = 'dot-priority'; dotTitle = 'Priority';
+        } else {
+          dotClass = 'dot-done'; dotTitle = 'Done';
+        }
+      } else {
+        // Mega: done/need only, no priority
+        var mp = megaPokemon[c.idx].players[p];
+        if (mp && mp.status === 'Done') {
+          dotClass = 'dot-done'; dotTitle = 'Done';
+        } else {
+          dotClass = 'dot-need'; dotTitle = 'Need';
+        }
+      }
+      html += '<div class="tile-player-row"><span class="dot ' + dotClass + '" title="' + dotTitle + '"></span>' + players[p].name + '</div>';
+    }
+
+    html += '</div></div>';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// ---- Forms Tab ----
+var formsFilter = 'all';
+
+// Build set of dex numbers that have multiple forms or regional variants
+function getFormNumbers() {
+  var counts = {};
+  for (var i = 0; i < allPokemon.length; i++) {
+    var mon = allPokemon[i];
+    if (isMega(mon.name)) continue;
+    var num = mon.number;
+    if (!counts[num]) counts[num] = 0;
+    counts[num]++;
+  }
+  var multiForm = {};
+  for (var num in counts) {
+    if (counts[num] > 1) multiForm[num] = true;
+  }
+  return multiForm;
+}
+
+function renderFormsFilters() {
+  var container = document.getElementById('formsFilters');
+  var filters = [
+    { key: 'all', label: 'All' },
+    { key: 'need', label: 'Need' },
+    { key: 'done', label: 'Done' },
+    { key: 'priority', label: 'Priority' }
+  ];
+  var html = '';
+  for (var i = 0; i < filters.length; i++) {
+    html += '<button class="overview-filter-btn' + (formsFilter === filters[i].key ? ' active' : '') + '" data-filter="' + filters[i].key + '">' + filters[i].label + '</button>';
+  }
+  container.innerHTML = html;
+
+  var btns = container.querySelectorAll('.overview-filter-btn');
+  for (var b = 0; b < btns.length; b++) {
+    btns[b].addEventListener('click', function() {
+      formsFilter = this.getAttribute('data-filter');
+      var all = container.querySelectorAll('.overview-filter-btn');
+      for (var a = 0; a < all.length; a++) all[a].classList.remove('active');
+      this.classList.add('active');
+      renderFormsTiles();
+    });
+  }
+}
+
+function renderFormsTiles() {
+  var container = document.getElementById('formsContainer');
+  if (allPokemon.length === 0 || players.length === 0) {
+    container.innerHTML = '<p style="color:#666;">No data to display.</p>';
+    return;
+  }
+
+  var multiForm = getFormNumbers();
+
+  var filtered = [];
+  for (var i = 0; i < allPokemon.length; i++) {
+    var mon = allPokemon[i];
+    if (isMega(mon.name)) continue;
+    if (!multiForm[mon.number]) continue;
+
+    var pData = mon.players[activePlayer];
+    if (!pData) continue;
+
+    var isDone = pData.status === 'Done';
+    var isPriority = isDone && pData.priority.toLowerCase() === 'x';
+
+    if (formsFilter === 'need' && isDone) continue;
+    if (formsFilter === 'done' && !isDone) continue;
+    if (formsFilter === 'priority' && !isPriority) continue;
+
+    filtered.push(mon);
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color:#666;">No Pokémon match this filter.</p>';
+    return;
+  }
+
+  var html = '<div class="tile-grid">';
+  for (var i = 0; i < filtered.length; i++) {
+    var mon = filtered[i];
+    var imgUrl = getSpriteUrl(mon.name);
+
+    html += '<div class="poke-tile">';
+    html += '<img src="' + imgUrl + '" alt="' + mon.name + '" onerror="this.style.display=\'none\'" loading="lazy" />';
+    html += '<div class="tile-name" title="' + mon.name + '">' + mon.name + '</div>';
+    html += '<div class="tile-num">#' + mon.number + '</div>';
+    html += '<div class="tile-players">';
+
+    for (var p = 0; p < players.length; p++) {
+      var pd = mon.players[p];
+      var dotClass, dotTitle;
+      if (!pd || pd.status !== 'Done') {
+        dotClass = 'dot-need'; dotTitle = 'Need';
+      } else if (pd.priority.toLowerCase() === 'x') {
+        dotClass = 'dot-priority'; dotTitle = 'Priority';
+      } else {
+        dotClass = 'dot-done'; dotTitle = 'Done';
+      }
+      html += '<div class="tile-player-row"><span class="dot ' + dotClass + '" title="' + dotTitle + '"></span>' + players[p].name + '</div>';
+    }
+
+    html += '</div></div>';
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// Initialize both search boxes
+setupSearchBox('doneSearch', 'doneDropdown', 'done');
+setupSearchBox('prioritySearch', 'priorityDropdown', 'priority');
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.search-box')) {
+    document.getElementById('doneDropdown').style.display = 'none';
+    document.getElementById('priorityDropdown').style.display = 'none';
+  }
+});
+
+// ---- Add Player Modal ----
+function openAddPlayerModal() {
+  document.getElementById('newPlayerName').value = '';
+  document.getElementById('addPlayerModal').classList.add('show');
+  setTimeout(function() { document.getElementById('newPlayerName').focus(); }, 100);
+}
+
+function closeAddPlayerModal() {
+  document.getElementById('addPlayerModal').classList.remove('show');
+}
+
+function confirmAddPlayer() {
+  var name = document.getElementById('newPlayerName').value.trim();
+  if (!name) return;
+
+  var btn = document.getElementById('addPlayerConfirm');
+  btn.textContent = 'Adding...';
+  btn.disabled = true;
+
+  google.script.run
+    .withSuccessHandler(function(newPlayer) {
+      players.push(newPlayer);
+      // Add empty player data to all existing pokemon
+      for (var i = 0; i < allPokemon.length; i++) {
+        allPokemon[i].players.push({ status: '', priority: '' });
+      }
+      activePlayer = players.length - 1;
+      closeAddPlayerModal();
+      init();
+      showToast(name + ' added!');
+      btn.textContent = 'Add';
+      btn.disabled = false;
+    })
+    .withFailureHandler(function(err) {
+      showToast('Error: ' + err.message, true);
+      btn.textContent = 'Add';
+      btn.disabled = false;
+    })
+    .addPlayer(name);
+}
+
+// ---- Sync Modal ----
+function openSyncModal() {
+  document.getElementById('syncModal').classList.add('show');
+}
+
+function closeSyncModal() {
+  document.getElementById('syncModal').classList.remove('show');
+}
+
+function confirmSync() {
+  var btn = document.getElementById('syncConfirm');
+  btn.textContent = 'Syncing...';
+  btn.disabled = true;
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      closeSyncModal();
+      btn.textContent = 'Sync';
+      btn.disabled = false;
+
+      if (result.success) {
+        showToast(result.message);
+        if (result.added > 0) {
+          // Reload data to pick up new pokemon
+          reloadData();
+        }
+      } else {
+        showToast(result.message, true);
+      }
+    })
+    .withFailureHandler(function(err) {
+      closeSyncModal();
+      showToast('Sync failed: ' + err.message, true);
+      btn.textContent = 'Sync';
+      btn.disabled = false;
+    })
+    .syncPokedex();
+}
+
+function reloadData() {
+  google.script.run
+    .withSuccessHandler(function(data) {
+      players = data.players;
+      allPokemon = data.pokemon;
+      evoChains = data.evoChains || {};
+      if (activePlayer >= players.length) activePlayer = 0;
+      init();
+    })
+    .getSheetData();
+}
+
+// ---- Import/Export Modal ----
+function openImportExportModal() {
+  var modal = document.getElementById('importExportModal');
+  // Populate player dropdowns
+  var exportSelect = document.getElementById('exportPlayerSelect');
+  var importSelect = document.getElementById('importPlayerSelect');
+  var html = '';
+  for (var i = 0; i < players.length; i++) {
+    var sel = i === activePlayer ? ' selected' : '';
+    html += '<option value="' + i + '"' + sel + '>' + players[i].name + '</option>';
+  }
+  exportSelect.innerHTML = html;
+  importSelect.innerHTML = html;
+
+  // Reset state
+  document.getElementById('exportOutput').value = '';
+  document.getElementById('importInput').value = '';
+  document.getElementById('exportBtn').style.display = '';
+  document.getElementById('copyExportBtn').style.display = 'none';
+  switchModalTab('export');
+  modal.classList.add('show');
+}
+
+function closeImportExportModal() {
+  document.getElementById('importExportModal').classList.remove('show');
+}
+
+function switchModalTab(tab) {
+  var tabs = document.querySelectorAll('#importExportModal .modal-tab');
+  var panels = document.querySelectorAll('#importExportModal .modal-panel');
+  for (var t = 0; t < tabs.length; t++) {
+    tabs[t].classList.toggle('active', tabs[t].getAttribute('data-mtab') === tab);
+  }
+  for (var p = 0; p < panels.length; p++) {
+    panels[p].classList.toggle('active', panels[p].id === 'mtab-' + tab);
+  }
+}
+
+function doExport() {
+  var playerIdx = parseInt(document.getElementById('exportPlayerSelect').value);
+  var playerName = players[playerIdx].name;
+
+  // Build main sheet export — only entries with status or priority
+  var mainExport = [];
+  for (var i = 0; i < allPokemon.length; i++) {
+    var mon = allPokemon[i];
+    if (isMega(mon.name)) continue;
+    var pd = mon.players[playerIdx];
+    if (!pd) continue;
+    if (pd.status === 'Done' || pd.priority.toLowerCase() === 'x') {
+      var entry = { n: mon.number, name: mon.name };
+      if (pd.status === 'Done') entry.s = 'Done';
+      if (pd.priority.toLowerCase() === 'x') entry.p = 'x';
+      mainExport.push(entry);
+    }
+  }
+
+  // Build mega sheet export
+  var megaExport = [];
+  for (var m = 0; m < megaPokemon.length; m++) {
+    var mmon = megaPokemon[m];
+    var mpd = mmon.players[playerIdx];
+    if (mpd && mpd.status === 'Done') {
+      megaExport.push({ n: mmon.number, name: mmon.name, s: 'Done' });
+    }
+  }
+
+  var exportData = {
+    player: playerName,
+    main: mainExport,
+    mega: megaExport
+  };
+
+  var json = JSON.stringify(exportData);
+  document.getElementById('exportOutput').value = json;
+  document.getElementById('exportBtn').style.display = 'none';
+  document.getElementById('copyExportBtn').style.display = '';
+}
+
+function copyExport() {
+  var text = document.getElementById('exportOutput').value;
+  if (!text) return;
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() {
+      showToast('Copied to clipboard!');
+    });
+  } else {
+    var ta = document.getElementById('exportOutput');
+    ta.select();
+    document.execCommand('copy');
+    showToast('Copied to clipboard!');
+  }
+}
+
+function doImport() {
+  var playerIdx = parseInt(document.getElementById('importPlayerSelect').value);
+  var raw = document.getElementById('importInput').value.trim();
+
+  if (!raw) {
+    showToast('Paste export data first.', true);
+    return;
+  }
+
+  var parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    showToast('Invalid JSON data.', true);
+    return;
+  }
+
+  if (!parsed.main && !parsed.mega) {
+    showToast('No data found in import.', true);
+    return;
+  }
+
+  var btn = document.getElementById('importBtn');
+  btn.textContent = 'Importing...';
+  btn.disabled = true;
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      btn.textContent = 'Import';
+      btn.disabled = false;
+      closeImportExportModal();
+      showToast('Imported ' + result.mainCount + ' main + ' + result.megaCount + ' mega entries.');
+      reloadData();
+    })
+    .withFailureHandler(function(err) {
+      btn.textContent = 'Import';
+      btn.disabled = false;
+      showToast('Import failed: ' + err.message, true);
+    })
+    .importPlayerData(playerIdx, raw);
+}
+
+// ---- Toast ----
+function showToast(msg, isError) {
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(function() { toast.className = 'toast'; }, 3000);
+}
+</script>
+
+</body>
+</html>
